@@ -30,12 +30,23 @@ router.put("/api/workouts/:id", ({ body, params }, res) => {
 
 //get request on /api/workouts which will get all workouts
 router.get("/api/workouts", (req, res) => {
-  Workouts.findAll({}).then.catch((err) => {
-    res.status(400).json(err);
+    Workouts.aggregate([
+        {
+            $addFields:{
+                totalDuration: {
+                    $sum: '$exercises.duration'
+                },
+            },
+        },
+    ]).then((workoutAggregation) => {
+        res.json(workoutAggregation);
+      })
+      .catch((err) => {
+        res.status(400).json(err);
+      });
   });
-});
 
-//get request on /api/workouts/range which will get a range of workouts
+//get request on /api/workouts/range which will get an aggregate of workouts
 router.get("/api/workouts/range", (req, res) => {
     Workouts.aggregate([
         {
