@@ -37,17 +37,21 @@ router.get("/api/workouts", (req, res) => {
 
 //get request on /api/workouts/range which will get a range of workouts
 router.get("/api/workouts/range", (req, res) => {
-  Workouts.findRange({}).then.catch((err) => {
-    res.status(400).json(err);
+    Workouts.aggregate([
+        {
+            $addFields:{
+                totalDuration: {
+                    $sum: '$exercises.duration'
+                },
+            },
+        },
+    ]).limit(7).then((workoutAggregation) => {
+        res.json(workoutAggregation);
+      })
+      .catch((err) => {
+        res.status(400).json(err);
+      });
   });
-});
-
-//delete on api/workouts that will delete by an id coming in on the body
-router.delete("/api/workouts", (req, res) => {
-  Workouts.deleteById.catch((err) => {
-    res.status(400).json(err);
-  });
-});
 
 //export router
 module.exports = router;
